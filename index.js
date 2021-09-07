@@ -198,12 +198,13 @@ async function viewRoles() {
   loadMainPrompts();
 }
 
+//error - unhandled rejection
 async function addRole() {
   const departments = await db.findAllDepartments();
 
-  const departmentChoices = departments.map(({ id, name }) => ({
+  const departmentChoices = departments.map(({ department_id, name }) => ({
     name: name,
-    value: id,
+    value: department_id
   }));
 
   const role = await prompt([
@@ -222,7 +223,7 @@ async function addRole() {
       choices: departmentChoices,
     },
   ]);
-
+  console.log(role.title, role.salary, role.department_id);
   await db.createRole(role);
 
   console.log(`Added ${role.title} to the database`);

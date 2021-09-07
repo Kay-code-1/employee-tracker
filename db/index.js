@@ -46,17 +46,18 @@ class DB {
   // Find all roles, join with departments to display the department name
   findAllRoles() {
     return this.connection.query(
-    `SELECT r.role_id as Role_ID, r.title as Role_Title, r.salary as salary, d.name as Department_name
+      `SELECT r.role_id as Role_ID, r.title as Role_Title, r.salary as salary, d.name as Department_name
         FROM role r LEFT JOIN department d 
-        ON r.department_id = d.department_id`);
+        ON r.department_id = d.department_id`
+    );
   }
 
   // Create a new role
   createRole(role) {
-    return this.connection
-      .query
+    return this.connection.query(
       // TODO: YOUR CODE HERE
-      ();
+      `INSERT into role(title, department_id, salary) VALUES (${role.title}, ${role.departmentChoices}, ${role.salary})`
+    );
   }
 
   // Find all departments, join with employees and roles and sum up utilized department budget
