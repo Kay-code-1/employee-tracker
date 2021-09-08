@@ -430,7 +430,7 @@ async function removeDepartment() {
       type: "list",
       name: "department_id",
       message: "Which department do you want to delete?",
-      choices: departmentChoices
+      choices: departmentChoices,
     },
   ]);
   console.log(deletedDept);
