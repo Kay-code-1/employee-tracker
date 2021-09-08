@@ -50,11 +50,10 @@ class DB {
   }
 
   // Update the given employee's manager
-  updateEmployeeManager(employeeId, managerId) {
+  updateEmployeeManager(managerId, employeeId) {
     return this.connection.query(
       "UPDATE employee SET manager_id = ? WHERE id = ?",
-      [managerId, employeeId]
-    );
+      [managerId, employeeId]);
   }
 
   // Find all roles, join with departments to display the department name
@@ -94,6 +93,11 @@ class DB {
   createDepartment(department) {
     return this.connection.query
      ( `INSERT INTO DEPARTMENT(name) VALUES ('${department.name}')`);
+  }
+
+  // Delete a department
+  deleteDepartment(deletedDept) {
+    return this.connection.query("DELETE FROM DEPARTMENT where department_id = ?", `${deletedDept}`);
   }
 
   // Find all employees in a given department, join with roles to display role titles
