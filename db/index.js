@@ -37,7 +37,9 @@ class DB {
   // Find all employees except the given employee id
   findAllPossibleManagers(employeeId) {
     return this.connection.query(
-      "SELECT employee_id, first_name, last_name FROM employee WHERE employee_id != ?",[employeeId]);
+      "SELECT employee_id, first_name, last_name FROM employee WHERE employee_id != ?",
+      [employeeId]
+    );
   }
 
   // Create a new employee
@@ -61,10 +63,16 @@ class DB {
     );
   }
 
+  // Delete employee
+  deleteEmployee(selectedEmployee) {
+    return this.connection.query("DELETE FROM EMPLOYEE WHERE employee_id = ?", [
+      selectedEmployee,
+    ]);
+  }
   //Find only managers
   findOnlyManagers() {
     return this.connection.query(
-     `SELECT DISTINCT m.employee_id, m.first_name, m.last_name FROM employee e, employee m WHERE e.manager_id = m.employee_id`
+      `SELECT DISTINCT m.employee_id, m.first_name, m.last_name FROM employee e, employee m WHERE e.manager_id = m.employee_id`
     );
   }
 
@@ -89,6 +97,12 @@ class DB {
   createRole(role) {
     return this.connection.query(
       `INSERT into role(title, department_id, salary) VALUES ('${role.title}', ${role.department_id}, ${role.salary})`
+    );
+  }
+  //Delete role
+  deleteRole(roleId) {
+    return this.connection.query(
+      "DELETE FROM role WHERE role_id =?", [roleId]
     );
   }
 

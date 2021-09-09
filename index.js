@@ -15,6 +15,7 @@ function init() {
   loadMainPrompts();
 }
 
+//User is prompted for choices on Organization structure
 async function loadMainPrompts() {
   const { choice } = await prompt([
     {
@@ -44,10 +45,10 @@ async function loadMainPrompts() {
           value: "ADD_EMPLOYEE",
         },
         // Bonus
-        // {
-        //   name: "Remove Employee",
-        //   value: "REMOVE_EMPLOYEE"
-        // },
+        {
+          name: "Remove Employee",
+          value: "REMOVE_EMPLOYEE"
+        },
         {
           name: "Update Employee Role",
           value: "UPDATE_EMPLOYEE_ROLE",
@@ -66,10 +67,10 @@ async function loadMainPrompts() {
           value: "ADD_ROLE",
         },
         //  Bonus
-        // {
-        //   name: "Remove Role",
-        //   value: "REMOVE_ROLE"
-        // },
+        {
+          name: "Remove Role",
+          value: "REMOVE_ROLE"
+        },
         {
           name: "View All Departments",
           value: "VIEW_DEPARTMENTS",
@@ -91,22 +92,30 @@ async function loadMainPrompts() {
     },
   ]);
 
-  // Call the appropriate function depending on what the user chose
+  // Call the appropriate function depending on the user choice
   switch (choice) {
+    // Employee Operations
     case "VIEW_EMPLOYEES":
       return viewEmployees();
     case "VIEW_EMPLOYEES_BY_DEPARTMENT":
       return viewEmployeesByDepartment();
-    //View employees by manager
+    //View All employees by their manager details
     case "VIEW_ALL_EMPLOYEES_BY_MANAGER":
       return viewEmpManagers();
     //View Employees as subordinates for a selected Manager
     case "VIEW_EMPLOYEES_BY_MANAGER":
       return findAllEmployeesByManager();
-    //remove emp - in progress
+    //remove emp
     case "REMOVE_EMPLOYEE":
       return removeEmployee();
-
+    case "ADD_EMPLOYEE":
+      return addEmployee();
+    case "UPDATE_EMPLOYEE_ROLE":
+      return updateEmployeeRole();
+    case "UPDATE_EMPLOYEE_MANAGER":
+      return updateEmployeeManager();
+  
+    //Department operations
     case "VIEW_DEPARTMENTS":
       return viewDepartments();
     case "ADD_DEPARTMENT":
@@ -114,17 +123,13 @@ async function loadMainPrompts() {
     case "REMOVE_DEPARTMENT":
       return removeDepartment();
 
-    case "ADD_EMPLOYEE":
-      return addEmployee();
-    case "UPDATE_EMPLOYEE_ROLE":
-      return updateEmployeeRole();
-    case "UPDATE_EMPLOYEE_MANAGER":
-      return updateEmployeeManager();
-
+    //Role operations
     case "VIEW_ROLES":
       return viewRoles();
     case "ADD_ROLE":
       return addRole();
+    case "REMOVE_ROLE":
+      return removeRole();
 
     default:
       return quit();
@@ -261,9 +266,32 @@ async function addEmployee() {
   loadMainPrompts();
 }
 
-//removeEmployee - in progress
+async function removeEmployee() {
+  const employee = await db.findAllEmployees();
 
-//Update Employee Manager
+  const employeeChoices = employee.map(
+    ({ employee_id, first_name, last_name }) => ({
+      name: `${first_name} ${last_name}`,
+      value: employee_id,
+    })
+  );
+
+  const selectedEmployee = await prompt([
+    {
+      type: "list",
+      name: "employee_id",
+      message: "Which employee do you want to delete?",
+      choices: employeeChoices,
+    },
+  ]);
+  console.log(selectedEmployee.employee_id);
+  await db.deleteEmployee(selectedEmployee.employee_id);
+
+  console.log(`Removed ${selectedEmployee.employee_id} from the database`);
+
+  loadMainPrompts();
+}
+
 async function updateEmployeeManager() {
   const employeesByMgr = await db.findAllEmpManagers();
 
@@ -399,6 +427,32 @@ async function addRole() {
 
   loadMainPrompts();
 }
+
+//removeRole
+async function removeRole() {
+  const roles = await db.findAllRoles();
+
+  const roleChoices = roles.map(({ role_id, title }) => ({
+    name: title,
+    value: role_id,
+  }));
+
+  const selectedRole = await prompt([
+    {
+      type: "list",
+      name: "role_id",
+      message: "Which role do you want to delete?",
+      choices: roleChoices,
+    },
+  ]);
+  console.log(selectedRole.role_id);
+  await db.deleteRole(selectedRole.role_id);
+
+  console.log(`Removed ${selectedRole.role_id} from the database`);
+
+  loadMainPrompts();
+}
+
 
 //Department operations
 async function viewDepartments() {
