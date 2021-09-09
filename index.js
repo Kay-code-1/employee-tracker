@@ -32,12 +32,12 @@ async function loadMainPrompts() {
         },
         // Bonus
         {
-        name: "View All Employees By Manager",
-        value: "VIEW_ALL_EMPLOYEES_BY_MANAGER"
+          name: "View All Employees By Manager",
+          value: "VIEW_ALL_EMPLOYEES_BY_MANAGER",
         },
         {
           name: "View Employees By specific Manager",
-          value: "VIEW_EMPLOYEES_BY_MANAGER"
+          value: "VIEW_EMPLOYEES_BY_MANAGER",
         },
         {
           name: "Add Employee",
@@ -55,7 +55,7 @@ async function loadMainPrompts() {
         // Bonus
         {
           name: "Update Employee Manager",
-          value: "UPDATE_EMPLOYEE_MANAGER"
+          value: "UPDATE_EMPLOYEE_MANAGER",
         },
         {
           name: "View All Roles",
@@ -81,7 +81,7 @@ async function loadMainPrompts() {
         //  Bonus
         {
           name: "Remove Department",
-          value: "REMOVE_DEPARTMENT"
+          value: "REMOVE_DEPARTMENT",
         },
         {
           name: "Quit",
@@ -97,27 +97,30 @@ async function loadMainPrompts() {
       return viewEmployees();
     case "VIEW_EMPLOYEES_BY_DEPARTMENT":
       return viewEmployeesByDepartment();
-      //View employees by manager
+    //View employees by manager
     case "VIEW_ALL_EMPLOYEES_BY_MANAGER":
       return viewEmpManagers();
-      //View Employees as subordinates for a selected Manager
+    //View Employees as subordinates for a selected Manager
     case "VIEW_EMPLOYEES_BY_MANAGER":
       return findAllEmployeesByManager();
+    //remove emp - in progress
+    case "REMOVE_EMPLOYEE":
+      return removeEmployee();
 
     case "VIEW_DEPARTMENTS":
       return viewDepartments();
     case "ADD_DEPARTMENT":
       return addDepartment();
-      case "REMOVE_DEPARTMENT":
-        return removeDepartment();
+    case "REMOVE_DEPARTMENT":
+      return removeDepartment();
 
     case "ADD_EMPLOYEE":
       return addEmployee();
     case "UPDATE_EMPLOYEE_ROLE":
       return updateEmployeeRole();
     case "UPDATE_EMPLOYEE_MANAGER":
-       return updateEmployeeManager();
-    
+      return updateEmployeeManager();
+
     case "VIEW_ROLES":
       return viewRoles();
     case "ADD_ROLE":
@@ -174,9 +177,7 @@ async function viewEmpManagers() {
 }
 
 async function findAllEmployeesByManager() {
-  
-
-  const managers = await db.findAllPossibleManagers();
+  const managers = await db.findOnlyManagers();
   const managerChoices = managers.map(
     ({ employee_id, first_name, last_name }) => ({
       name: `${first_name} ${last_name}`,
@@ -204,7 +205,6 @@ async function findAllEmployeesByManager() {
 
 async function addEmployee() {
   const roles = await db.findAllRoles();
-  const managers = await db.findAllPossibleManagers();
 
   const employee = await prompt([
     {
@@ -230,6 +230,8 @@ async function addEmployee() {
   });
 
   employee.role_id = roleId;
+
+  const managers = await db.findAllEmployees();
 
   const managerChoices = managers.map(
     ({ employee_id, first_name, last_name }) => ({
@@ -259,47 +261,54 @@ async function addEmployee() {
   loadMainPrompts();
 }
 
+//removeEmployee - in progress
+
 //Update Employee Manager
 async function updateEmployeeManager() {
   const employeesByMgr = await db.findAllEmpManagers();
 
+  //Get all employees with manager names from Database
   const employeeChoices = employeesByMgr.map(
     ({ employee_id, first_name, last_name }) => ({
       name: `${first_name} ${last_name}`,
       value: employee_id,
     })
   );
+  console.log(employeeChoices);
 
-  const { employeeId } = await prompt([
+  // Choose from an employee to update manager
+  const employee = await prompt([
     {
       type: "list",
-      name: "employeeId",
+      name: "employee_id",
       message: "Which employee's manager do you want to update?",
       choices: employeeChoices,
     },
   ]);
-  
-  const managerList = await db.findAllPossibleManagers();
+  console.log(employee.employee_id);
+
+  //Get all employees except selected employee to add manager
+  const managerList = await db.findAllPossibleManagers(employee.employee_id);
   console.log(managerList);
 
   const managerChoices = managerList.map(
-    ({employee_id, first_name, last_name }) => ({
-    name: `${first_name} ${last_name}`,
-    value: employee_id,
-  })
+    ({ employee_id, first_name, last_name }) => ({
+      name: `${first_name} ${last_name}`,
+      value: employee_id,
+    })
   );
-  
-  const { managerId } = await prompt([
+
+  const manager = await prompt([
     {
       type: "list",
-      name: "managerId",
+      name: "manager_id",
       message: "Which manager do you want to choose for employee?",
       choices: managerChoices,
     },
   ]);
 
-  console.log(employeeId, managerId);
-  await db.updateEmployeeRole(employeeId, managerId);
+  console.log(employee.employee_id, manager.manager_id);
+  await db.updateEmployeeManager(manager.manager_id, employee.employee_id);
 
   console.log(`Updated employee's manager!`);
 
@@ -364,7 +373,7 @@ async function addRole() {
 
   const departmentChoices = departments.map(({ department_id, name }) => ({
     name: name,
-    value: department_id
+    value: department_id,
   }));
 
   const role = await prompt([
@@ -391,7 +400,6 @@ async function addRole() {
   loadMainPrompts();
 }
 
-
 //Department operations
 async function viewDepartments() {
   const departments = await db.findAllDepartments();
@@ -416,16 +424,17 @@ async function addDepartment() {
 
   loadMainPrompts();
 }
-//in progress
+
+//Remove department
 async function removeDepartment() {
   const departments = await db.findAllDepartments();
 
   const departmentChoices = departments.map(({ department_id, name }) => ({
     name: name,
-    value: department_id
+    value: department_id,
   }));
 
-  const { deletedDept } = await prompt([
+  const selectedDept = await prompt([
     {
       type: "list",
       name: "department_id",
@@ -433,10 +442,10 @@ async function removeDepartment() {
       choices: departmentChoices,
     },
   ]);
-  console.log(deletedDept);
-  await db.deleteDepartment(deletedDept);
+  console.log(selectedDept.department_id);
+  await db.deleteDepartment(selectedDept.department_id);
 
-  console.log(`Removed ${deletedDept} from the database`);
+  console.log(`Removed ${selectedDept.department_id} from the database`);
 
   loadMainPrompts();
 }
